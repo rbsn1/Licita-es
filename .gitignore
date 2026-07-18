@@ -6,3 +6,8 @@ __pycache__/
 .ruff_cache/
 logs/*.log
 logs/*.lock
+
+# Não versionar uv.lock: o builder Python do Vercel, ao detectar esse arquivo,
+# instala nosso próprio pacote (via uv) como editável, registrando um pacote
+# "api" que colide com a pasta api/ exigida pelo Vercel para a função serverless.
+uv.lock
