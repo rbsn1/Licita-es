@@ -3,8 +3,8 @@ import datetime
 import httpx
 import pytest
 
-from api.clients import pncp as pncp_module
-from api.clients.pncp import PNCPClient, PNCPRateLimitError
+from webapp.clients import pncp as pncp_module
+from webapp.clients.pncp import PNCPClient, PNCPRateLimitError
 
 UMA_DATA = datetime.date(2026, 1, 1)
 OUTRA_DATA = datetime.date(2026, 1, 2)

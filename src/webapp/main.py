@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.routes.dashboard import router as dashboard_router
+from webapp.routes.dashboard import router as dashboard_router
 
 app = FastAPI(title="Agente de Prospecção de Editais")
 app.include_router(dashboard_router)

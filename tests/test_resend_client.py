@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from api.clients.resend_client import ResendClient
+from webapp.clients.resend_client import ResendClient
 
 
 def test_enviar_email_monta_payload_correto():

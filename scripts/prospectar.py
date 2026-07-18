@@ -7,8 +7,8 @@ import traceback
 from pathlib import Path
 
 from agents.prospeccao.agent import ProspeccaoAgent, enviar_alertas_pendentes
-from api.clients.pncp import PNCPClient
-from api.clients.resend_client import ResendClient
+from webapp.clients.pncp import PNCPClient
+from webapp.clients.resend_client import ResendClient
 from data.db import SessionLocal
 from data.models import Cliente
 from data.settings import settings

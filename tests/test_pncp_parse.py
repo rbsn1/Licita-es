@@ -1,6 +1,6 @@
 import datetime
 
-from api.clients.pncp import parse_contratacao
+from webapp.clients.pncp import parse_contratacao
 from data.models import Esfera
 
 ITEM_EXEMPLO = {

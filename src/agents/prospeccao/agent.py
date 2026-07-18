@@ -4,8 +4,8 @@ import logging
 import httpx
 from sqlalchemy.orm import Session
 
-from api.clients.pncp import MODALIDADES_LEI_14133, PNCPClient, PNCPRateLimitError, parse_contratacao
-from api.clients.resend_client import ResendClient
+from webapp.clients.pncp import MODALIDADES_LEI_14133, PNCPClient, PNCPRateLimitError, parse_contratacao
+from webapp.clients.resend_client import ResendClient
 from data.models import Alerta, CanalAlerta, Cliente, Edital, Match, PerfilCliente, StatusAlerta
 from data.settings import settings
 
