@@ -1,4 +1,5 @@
 import datetime
+import re
 import time
 from collections.abc import Iterator
 
@@ -6,6 +7,21 @@ import httpx
 
 from data.models import Esfera
 from data.settings import settings
+
+_NUMERO_CONTROLE_RE = re.compile(r"^(\d{14})-\d+-(\d+)/(\d{4})$")
+
+
+def parse_numero_controle(pncp_id: str) -> tuple[str, int, int]:
+    match = _NUMERO_CONTROLE_RE.match(pncp_id)
+    if not match:
+        raise ValueError(f"numeroControlePNCP em formato inesperado: {pncp_id}")
+    cnpj, sequencial, ano = match.groups()
+    return cnpj, int(ano), int(sequencial)
+
+
+def selecionar_documento_edital(arquivos: list[dict]) -> dict | None:
+    candidatos = [a for a in arquivos if "edital" in a.get("titulo", "").lower()]
+    return candidatos[0] if candidatos else None
 
 MODALIDADES_LEI_14133 = {
     1: "Leilão - Eletrônico",
@@ -149,3 +165,17 @@ class PNCPClient:
             if max_paginas is not None and pagina >= max_paginas:
                 break
             pagina += 1
+
+    # RF-ANL-01: lista os documentos (edital, ETP, anexos) de uma contratação.
+    # Vive num host/path diferente da API de consulta (api/pncp, não api/consulta).
+    def buscar_arquivos_compra(self, cnpj: str, ano: int, sequencial: int) -> list[dict]:
+        response = self._client.get(
+            f"https://pncp.gov.br/api/pncp/v1/orgaos/{cnpj}/compras/{ano}/{sequencial}/arquivos"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def baixar_arquivo(self, url: str) -> bytes:
+        response = self._client.get(url)
+        response.raise_for_status()
+        return response.content

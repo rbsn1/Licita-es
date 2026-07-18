@@ -24,4 +24,10 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 | RF-05 (portais legados) | não implementado — fase 2 |
 | RNF-01 (varredura intradiária) | `executar_varredura` em `src/agents/prospeccao/agent.py`, chamada por `scripts/prospectar.py` (CLI/lock local) e por `src/webapp/routes/cron.py` (`GET /cron/prospectar`, agendado a cada 3h em `vercel.json` via Vercel Cron) |
 
-Os demais 4 agentes da plataforma (Análise/triagem, Precificação, Documentação/habilitação, Acompanhamento) têm requisitos fechados em `requisitos-plataforma.md` mas ainda nenhum código — ao implementá-los, seguir a mesma prática de rastreabilidade acima.
+### Mapa requisito → implementação (agente de Análise/triagem de edital)
+
+| Requisito | Onde |
+|---|---|
+| RF-ANL-01 (obtém PDF do edital via PNCP e extrai resumo estruturado) | `src/agents/analise_edital/agent.py` — usa `claude-opus-4-8` via Anthropic API (`ANTHROPIC_API_KEY` obrigatória); `src/webapp/clients/pncp.py` (`buscar_arquivos_compra`, `baixar_arquivo`, `parse_numero_controle`, `selecionar_documento_edital`) para localizar e baixar o PDF |
+
+Os demais 3 agentes da plataforma (Precificação, Documentação/habilitação, Acompanhamento) têm requisitos fechados em `requisitos-plataforma.md` mas ainda nenhum código — ao implementá-los, seguir a mesma prática de rastreabilidade acima.

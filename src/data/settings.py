@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     dashboard_base_url: str = "http://localhost:8000"
     operador_email: str = ""
     cron_secret: str = ""
+    anthropic_api_key: str = ""
 
 
 settings = Settings()
