@@ -55,6 +55,7 @@ def parse_contratacao(item: dict) -> dict:
     }
 
 
+# RF-01: cliente do PNCP usado pela Prospecção para buscar editais publicados
 class PNCPClient:
     def __init__(
         self,

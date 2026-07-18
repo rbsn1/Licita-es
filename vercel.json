@@ -4,5 +4,8 @@
     "api/index.py": {
       "includeFiles": "src/**"
     }
-  }
+  },
+  "crons": [
+    { "path": "/cron/prospectar", "schedule": "0 */3 * * *" }
+  ]
 }

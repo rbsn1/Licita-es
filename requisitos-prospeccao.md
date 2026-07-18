@@ -36,7 +36,7 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 ## 6. Requisitos não funcionais
 | ID | Atributo | Critério |
 |---|---|---|
-| RNF-01 | Frequência de varredura | Intradiária — várias vezes ao dia; intervalo exato `[a definir]` |
+| RNF-01 | Frequência de varredura | Intradiária — a cada 3h (8x/dia), via Vercel Cron Job em `/cron/prospectar` (`vercel.json`) |
 | RNF-02 | Isolamento de dados multi-tenant | Dados e configurações de busca de um cliente nunca devem ser acessíveis ou vazar, mesmo indiretamente, para outro cliente — vale mesmo entre clientes de setores distintos |
 | RNF-03 | Retenção de dados (LGPD) | Dados de perfil do cliente e histórico de editais devem ter prazo de retenção definido e mecanismo de exclusão; prazo exato `[a definir]` |
 | RNF-04 | Disponibilidade | `[a definir]` |
@@ -67,7 +67,6 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 - **RF / RNF**: requisito funcional / requisito não funcional
 
 ## 11. Itens em aberto
-- Intervalo exato da varredura intradiária (RNF-01)
 - Threshold de score que dispara alerta automático (RF-03)
 - Provedor de e-mail e de WhatsApp Business a integrar
 - Lista e prioridade dos portais legados a cobrir na fase 2 (RF-05)

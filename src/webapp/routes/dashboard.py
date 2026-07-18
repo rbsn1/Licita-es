@@ -6,12 +6,15 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from data.db import get_session
+from data.formatacao import formatar_valor_brl
 from data.models import Cliente, Edital, Esfera, Match
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+templates.env.filters["valor_brl"] = formatar_valor_brl
 
 
+# RF-04: dashboard consultável, filtrável por score, órgão, esfera, modalidade e data
 @router.get("/dashboard/{token}")
 def dashboard(
     token: str,
@@ -52,6 +55,8 @@ def dashboard(
         {
             "cliente": cliente,
             "resultados": resultados,
+            "total_resultados": len(resultados),
+            "melhor_score": resultados[0][0].score if resultados else None,
             "filtros": {
                 "score_minimo": score_minimo,
                 "uf": uf or "",

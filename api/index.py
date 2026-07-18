@@ -4,4 +4,4 @@ from pathlib import Path
 SRC_DIR = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SRC_DIR))
 
-from webapp.main import app  # noqa: E402
+from webapp.main import app  # noqa: E402,F401

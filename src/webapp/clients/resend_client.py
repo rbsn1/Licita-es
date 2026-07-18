@@ -3,6 +3,7 @@ import httpx
 from data.settings import settings
 
 
+# RF-03: canal de e-mail usado para os alertas de edital compatível
 class ResendClient:
     def __init__(
         self,
