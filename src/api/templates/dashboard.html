@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Editais compatíveis — {{ cliente.razao_social }}</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 2rem; color: #1a1a1a; }
+        h1 { font-size: 1.25rem; }
+        form { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0; align-items: end; }
+        label { display: flex; flex-direction: column; font-size: 0.8rem; gap: 0.25rem; }
+        input, select { padding: 0.35rem; }
+        button { padding: 0.4rem 0.9rem; cursor: pointer; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border-bottom: 1px solid #ddd; padding: 0.5rem; text-align: left; font-size: 0.9rem; vertical-align: top; }
+        th { background: #f5f5f5; }
+        .score { font-weight: 600; }
+        .vazio { color: #666; margin-top: 2rem; }
+        a { color: #0a5; }
+    </style>
+</head>
+<body>
+    <h1>Editais compatíveis — {{ cliente.razao_social }}</h1>
+
+    <form method="get">
+        <label>Score mínimo
+            <input type="number" name="score_minimo" value="{{ filtros.score_minimo }}" min="0" max="100" step="1">
+        </label>
+        <label>UF
+            <input type="text" name="uf" value="{{ filtros.uf }}" maxlength="2" placeholder="ex: SC">
+        </label>
+        <label>Esfera
+            <select name="esfera">
+                <option value="">todas</option>
+                {% for e in esferas %}
+                <option value="{{ e.value }}" {% if filtros.esfera == e.value %}selected{% endif %}>{{ e.value }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Modalidade
+            <input type="text" name="modalidade" value="{{ filtros.modalidade }}" placeholder="ex: Pregão - Eletrônico">
+        </label>
+        <label>Publicado a partir de
+            <input type="date" name="data_inicial" value="{{ filtros.data_inicial }}">
+        </label>
+        <label>Publicado até
+            <input type="date" name="data_final" value="{{ filtros.data_final }}">
+        </label>
+        <button type="submit">Filtrar</button>
+    </form>
+
+    {% if resultados %}
+    <table>
+        <thead>
+            <tr>
+                <th>Score</th>
+                <th>Órgão</th>
+                <th>Objeto</th>
+                <th>Esfera</th>
+                <th>Modalidade</th>
+                <th>UF</th>
+                <th>Valor estimado</th>
+                <th>Publicação</th>
+                <th>Edital</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match, edital in resultados %}
+            <tr>
+                <td class="score">{{ "%.0f"|format(match.score) }}</td>
+                <td>{{ edital.orgao }}</td>
+                <td>{{ edital.objeto[:120] }}{% if edital.objeto|length > 120 %}…{% endif %}</td>
+                <td>{{ edital.esfera.value }}</td>
+                <td>{{ edital.modalidade }}</td>
+                <td>{{ edital.uf }}</td>
+                <td>{% if edital.valor_estimado %}R$ {{ "%.2f"|format(edital.valor_estimado) }}{% else %}não informado{% endif %}</td>
+                <td>{{ edital.data_publicacao }}</td>
+                <td><a href="{{ edital.link_pncp }}" target="_blank" rel="noopener">ver no PNCP</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="vazio">Nenhum edital encontrado com esses filtros.</p>
+    {% endif %}
+</body>
+</html>
