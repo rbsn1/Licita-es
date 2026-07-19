@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     operador_email: str = ""
     cron_secret: str = ""
     anthropic_api_key: str = ""
+    session_secret_key: str = ""
 
 
 settings = Settings()

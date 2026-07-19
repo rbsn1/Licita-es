@@ -1,0 +1,116 @@
+<!-- RF-AUTH-02: login do operador da consultoria por e-mail e senha -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entrar — Painel Administrativo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --selo: #1B3A4B;
+            --papel: #EDEAE2;
+            --papel-alt: #E2DED2;
+            --protocolo: #C1401D;
+            --linha: #D8D3C6;
+            --texto-secundario: #5B6B72;
+            --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+            --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--papel);
+            color: var(--selo);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .cartao {
+            width: 100%;
+            max-width: 22rem;
+            background: var(--papel-alt);
+            border: 1px solid var(--linha);
+            border-radius: 10px;
+            padding: 2rem;
+        }
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--texto-secundario);
+            margin: 0 0 0.4rem;
+        }
+        h1 { font-size: 1.25rem; font-weight: 700; margin: 0 0 1.5rem; }
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--texto-secundario);
+            margin-bottom: 1rem;
+        }
+        input {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            padding: 0.55rem 0.7rem;
+            border: 1px solid var(--linha);
+            border-radius: 6px;
+            background: var(--papel);
+            color: var(--selo);
+            width: 100%;
+        }
+        input:focus-visible { outline: 2px solid var(--protocolo); outline-offset: 2px; }
+        button {
+            width: 100%;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.65rem;
+            border: none;
+            border-radius: 6px;
+            background: var(--selo);
+            color: var(--papel);
+            cursor: pointer;
+            margin-top: 0.4rem;
+        }
+        button:hover { background: #142C39; }
+        button:focus-visible { outline: 2px solid var(--protocolo); outline-offset: 2px; }
+        .erro {
+            background: rgba(193, 64, 29, 0.1);
+            color: var(--protocolo);
+            border: 1px solid rgba(193, 64, 29, 0.3);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="cartao">
+        <p class="eyebrow">Operador</p>
+        <h1>Painel administrativo</h1>
+        {% if erro %}
+        <div class="erro">E-mail ou senha incorretos.</div>
+        {% endif %}
+        <form method="post" action="/admin/login">
+            <label>E-mail
+                <input type="email" name="email" required autofocus>
+            </label>
+            <label>Senha
+                <input type="password" name="senha" required>
+            </label>
+            <button type="submit">Entrar</button>
+        </form>
+    </div>
+</body>
+</html>

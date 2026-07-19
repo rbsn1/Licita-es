@@ -1,0 +1,100 @@
+<!-- RF-AUTH-03: painel administrativo lista os clientes cadastrados -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel administrativo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --selo: #1B3A4B;
+            --papel: #EDEAE2;
+            --papel-alt: #E2DED2;
+            --linha: #D8D3C6;
+            --texto-secundario: #5B6B72;
+            --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+            --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--papel);
+            color: var(--selo);
+            margin: 0;
+            padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem);
+        }
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--linha);
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--texto-secundario);
+            margin: 0 0 0.4rem;
+        }
+        h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+        a.sair { color: var(--texto-secundario); font-size: 0.85rem; text-decoration: none; }
+        a.sair:hover { color: var(--selo); }
+        .tabela-scroll { overflow-x: auto; border: 1px solid var(--linha); border-radius: 10px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 0.75rem 0.9rem; text-align: left; font-size: 0.85rem; border-bottom: 1px solid var(--linha); }
+        th {
+            font-size: 0.68rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--texto-secundario);
+            background: var(--papel-alt);
+            font-weight: 600;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        td.mono { font-family: var(--font-mono); }
+        .vazio { padding: 2.5rem; text-align: center; border: 1px dashed var(--linha); border-radius: 10px; color: var(--texto-secundario); }
+    </style>
+</head>
+<body>
+    <div class="cabecalho">
+        <div>
+            <p class="eyebrow">Painel administrativo</p>
+            <h1>Clientes cadastrados</h1>
+        </div>
+        <a class="sair" href="/admin/logout">Sair</a>
+    </div>
+
+    {% if clientes %}
+    <div class="tabela-scroll">
+    <table>
+        <thead>
+            <tr>
+                <th>Razão social</th>
+                <th>E-mail</th>
+                <th class="numerico">CNPJ</th>
+                <th class="numerico">Cadastrado em</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td>{{ cliente.razao_social }}</td>
+                <td>{{ cliente.email }}</td>
+                <td class="mono">{{ cliente.cnpj }}</td>
+                <td class="mono">{{ cliente.criado_em.strftime("%Y-%m-%d") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <div class="vazio">Nenhum cliente cadastrado ainda. Use <code>scripts/cadastrar_cliente.py</code>.</div>
+    {% endif %}
+</body>
+</html>

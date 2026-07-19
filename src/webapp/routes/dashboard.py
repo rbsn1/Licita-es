@@ -1,7 +1,8 @@
 import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -14,10 +15,11 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 templates.env.filters["valor_brl"] = formatar_valor_brl
 
 
-# RF-04: dashboard consultável, filtrável por score, órgão, esfera, modalidade e data
-@router.get("/dashboard/{token}")
+# RF-04/RF-AUTH-01: dashboard consultável, agora protegido por sessão de login
+# (substitui o link mágico por token), filtrável por score, órgão, esfera,
+# modalidade e data
+@router.get("/dashboard")
 def dashboard(
-    token: str,
     request: Request,
     score_minimo: float = Query(0.0),
     uf: str | None = Query(None),
@@ -27,9 +29,14 @@ def dashboard(
     data_final: datetime.date | None = Query(None),
     session: Session = Depends(get_session),
 ):
-    cliente = session.query(Cliente).filter_by(access_token=token).one_or_none()
+    cliente_id = request.session.get("cliente_id")
+    if cliente_id is None:
+        return RedirectResponse(url="/login", status_code=303)
+
+    cliente = session.query(Cliente).filter_by(id=cliente_id).one_or_none()
     if cliente is None:
-        raise HTTPException(status_code=404, detail="link inválido")
+        request.session.pop("cliente_id", None)
+        return RedirectResponse(url="/login", status_code=303)
 
     consulta = (
         session.query(Match, Edital)

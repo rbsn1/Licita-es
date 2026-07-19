@@ -6,7 +6,10 @@ from webapp.main import app
 
 
 def _client_com_sessao_fake() -> TestClient:
-    app.dependency_overrides[get_session] = lambda: iter([object()])
+    def _get_session_fake():
+        yield object()
+
+    app.dependency_overrides[get_session] = _get_session_fake
     return TestClient(app)
 
 

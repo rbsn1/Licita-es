@@ -118,9 +118,9 @@ class ProspeccaoAgent:
         return matches
 
 
-def _montar_corpo_email(edital: Edital, score: float, cliente: Cliente) -> str:
+def _montar_corpo_email(edital: Edital, score: float) -> str:
     valor = formatar_valor_brl(edital.valor_estimado)
-    dashboard_url = f"{settings.dashboard_base_url}/dashboard/{cliente.access_token}"
+    dashboard_url = f"{settings.dashboard_base_url}/login"
     return (
         f"<p>Novo edital com {score:.0f}% de aderência ao seu perfil:</p>"
         f"<p><strong>{edital.orgao}</strong> ({edital.uf})</p>"
@@ -147,7 +147,7 @@ def enviar_alertas_pendentes(session: Session, resend_client: ResendClient, limi
             resend_client.enviar_email(
                 destinatario=match.cliente.email,
                 assunto=f"Novo edital compatível ({match.score:.0f}% de aderência): {match.edital.orgao}",
-                corpo_html=_montar_corpo_email(match.edital, match.score, match.cliente),
+                corpo_html=_montar_corpo_email(match.edital, match.score),
             )
             alerta.status = StatusAlerta.enviado
             alerta.enviado_em = datetime.datetime.now(datetime.timezone.utc)

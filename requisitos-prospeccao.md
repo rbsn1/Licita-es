@@ -32,6 +32,9 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 | RF-03 | Prospecção deve notificar o cliente por e-mail e WhatsApp a partir de um edital com score acima de um limiar configurável, produzindo um alerta com link direto para o edital no PNCP | Must |
 | RF-04 | Prospecção deve expor um dashboard consultável a partir do histórico de editais encontrados por cliente, produzindo uma visão filtrável por score, órgão, esfera, modalidade e data | Must |
 | RF-05 | Prospecção deve varrer portais estaduais/municipais legados a partir da lista de portais priorizados (`[a definir]`), complementando a cobertura do PNCP | Should (fase 2) |
+| RF-AUTH-01 | Sistema deve autenticar o cliente final por e-mail e senha a partir do cadastro do cliente, produzindo uma sessão com acesso ao seu próprio dashboard — substitui o link mágico por token do RF-04 | Must |
+| RF-AUTH-02 | Sistema deve autenticar o operador da consultoria por e-mail e senha a partir de um cadastro de operador, produzindo uma sessão com acesso a um painel administrativo | Must |
+| RF-AUTH-03 | Painel administrativo deve listar os clientes cadastrados (razão social, e-mail, data de cadastro) a partir da sessão autenticada do operador | Must |
 
 ## 6. Requisitos não funcionais
 | ID | Atributo | Critério |
@@ -41,6 +44,7 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 | RNF-03 | Retenção de dados (LGPD) | Dados de perfil do cliente e histórico de editais devem ter prazo de retenção definido e mecanismo de exclusão; prazo exato `[a definir]` |
 | RNF-04 | Disponibilidade | `[a definir]` |
 | RNF-05 | Latência do alerta | Alerta deve ser disparado dentro do mesmo ciclo de varredura intradiária em que o edital foi capturado (não é requisito de tempo real) |
+| RNF-06 | Segurança de senha | Senhas de cliente e operador nunca armazenadas em texto plano — hash com bcrypt |
 
 ## 7. Integrações e fontes de dado
 - **PNCP** — API pública de dados abertos; fonte primária nesta versão
@@ -72,3 +76,6 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 - Lista e prioridade dos portais legados a cobrir na fase 2 (RF-05)
 - Prazo de retenção de dados (RNF-03)
 - SLA de disponibilidade (RNF-04)
+- Cadastro de cliente/operador via UI do painel admin — por ora só leitura (lista de clientes); criação continua via `scripts/cadastrar_cliente.py` (RF-AUTH-03)
+- Fluxo de recuperação de senha (RF-AUTH-01/02)
+- Expiração/duração da sessão de login (RF-AUTH-01/02)

@@ -36,11 +36,24 @@ class Cliente(Base):
     access_token: Mapped[str] = mapped_column(
         String(64), unique=True, default=lambda: secrets.token_urlsafe(32)
     )
+    senha_hash: Mapped[str | None] = mapped_column(String(60), nullable=True)
     criado_em: Mapped[datetime.datetime] = mapped_column(
         default=lambda: datetime.datetime.now(datetime.timezone.utc)
     )
 
     perfil: Mapped["PerfilCliente"] = relationship(back_populates="cliente", uselist=False)
+
+
+# RF-AUTH-02: operador da consultoria — login do painel administrativo
+class Operador(Base):
+    __tablename__ = "operadores"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True)
+    senha_hash: Mapped[str] = mapped_column(String(60))
+    criado_em: Mapped[datetime.datetime] = mapped_column(
+        default=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
 
 
 class PerfilCliente(Base):

@@ -30,4 +30,15 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 |---|---|
 | RF-ANL-01 (obtém PDF do edital via PNCP e extrai resumo estruturado) | `src/agents/analise_edital/agent.py` — usa `claude-opus-4-8` via Anthropic API (`ANTHROPIC_API_KEY` obrigatória); `src/webapp/clients/pncp.py` (`buscar_arquivos_compra`, `baixar_arquivo`, `parse_numero_controle`, `selecionar_documento_edital`) para localizar e baixar o PDF |
 
+### Mapa requisito → implementação (autenticação)
+
+| Requisito | Onde |
+|---|---|
+| RF-AUTH-01 (login do cliente final, substitui o link mágico) | `src/webapp/routes/auth.py` (`/login`), `src/webapp/routes/dashboard.py` (`/dashboard` agora exige `request.session["cliente_id"]`) |
+| RF-AUTH-02 (login do operador) | `src/webapp/routes/auth.py` (`/admin/login`) |
+| RF-AUTH-03 (painel admin lista clientes, só leitura) | `src/webapp/routes/admin.py` (`/admin`) |
+| RNF-06 (senha com hash) | `src/data/auth.py` (`hash_senha`/`verificar_senha`, bcrypt) |
+
+Sessão via `SessionMiddleware` (cookie assinado por `SESSION_SECRET_KEY`, ver `.env.example`). Cadastro de cliente/operador continua via `scripts/cadastrar_cliente.py` / `scripts/cadastrar_operador.py` — não há formulário de cadastro na UI ainda.
+
 Os demais 3 agentes da plataforma (Precificação, Documentação/habilitação, Acompanhamento) têm requisitos fechados em `requisitos-plataforma.md` mas ainda nenhum código — ao implementá-los, seguir a mesma prática de rastreabilidade acima.

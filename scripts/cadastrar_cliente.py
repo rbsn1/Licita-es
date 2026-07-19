@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import getpass
 import re
 import sys
 
 from sqlalchemy.exc import IntegrityError
 
+from data.auth import hash_senha
 from data.db import SessionLocal
 from data.models import Cliente, PerfilCliente
 from data.settings import settings
@@ -77,8 +79,16 @@ def main() -> None:
     valor_minimo = perguntar_valor("Valor mínimo de interesse")
     valor_maximo = perguntar_valor("Valor máximo de interesse")
 
+    while True:
+        senha = getpass.getpass("Senha de acesso ao painel (mín. 8 caracteres): ")
+        if len(senha) >= 8:
+            break
+        print("  senha muito curta, use pelo menos 8 caracteres.")
+
     session = SessionLocal()
-    cliente = Cliente(razao_social=razao_social, cnpj=cnpj, email=email)
+    cliente = Cliente(
+        razao_social=razao_social, cnpj=cnpj, email=email, senha_hash=hash_senha(senha)
+    )
     session.add(cliente)
     try:
         session.flush()
@@ -99,9 +109,8 @@ def main() -> None:
     session.add(perfil)
     session.commit()
 
-    dashboard_url = f"{settings.dashboard_base_url}/dashboard/{cliente.access_token}"
     print(f"\nCliente cadastrado com sucesso (id={cliente.id}).")
-    print(f"Painel do cliente: {dashboard_url}")
+    print(f"Login do painel: {settings.dashboard_base_url}/login (e-mail: {email})")
     print("A próxima varredura do cron já vai considerar esse perfil.")
     session.close()
 
