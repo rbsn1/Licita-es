@@ -24,7 +24,7 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 | RF-03 (alerta e-mail/WhatsApp) | `enviar_alertas_pendentes` em `src/agents/prospeccao/agent.py` + `src/webapp/clients/resend_client.py` — só e-mail implementado; canal WhatsApp segue em aberto |
 | RF-04 (dashboard consultável) | `src/webapp/routes/dashboard.py` + `src/webapp/templates/dashboard.html` |
 | RF-05 (portais legados) | não implementado — fase 2 |
-| RNF-01 (varredura intradiária) | `executar_varredura` em `src/agents/prospeccao/agent.py`, chamada por `scripts/prospectar.py` (CLI/lock local) e por `src/webapp/routes/cron.py` (`GET /cron/prospectar`, agendado a cada 3h em `vercel.json` via Vercel Cron) |
+| RNF-01 (varredura, hoje 1x/dia — rebaixado do intradiário original pelo limite de cron do plano Vercel Hobby) | `executar_varredura` em `src/agents/prospeccao/agent.py`, chamada por `scripts/prospectar.py` (CLI/lock local) e por `src/webapp/routes/cron.py` (`GET /cron/prospectar`, agendado 1x/dia em `vercel.json` via Vercel Cron) |
 
 ### Mapa requisito → implementação (agente de Análise/triagem de edital)
 

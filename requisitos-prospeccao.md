@@ -39,11 +39,11 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 ## 6. Requisitos não funcionais
 | ID | Atributo | Critério |
 |---|---|---|
-| RNF-01 | Frequência de varredura | Intradiária — a cada 3h (8x/dia), via Vercel Cron Job em `/cron/prospectar` (`vercel.json`) |
+| RNF-01 | Frequência de varredura | Diária — 1x/dia, via Vercel Cron Job em `/cron/prospectar` (`vercel.json`). Rebaixado de intradiário (a cada 3h) em 2026-07-25: o plano Vercel Hobby só permite cron 1x/dia; upgrade pra Pro reabilita a cadência intradiária original, ver item em aberto |
 | RNF-02 | Isolamento de dados multi-tenant | Dados e configurações de busca de um cliente nunca devem ser acessíveis ou vazar, mesmo indiretamente, para outro cliente — vale mesmo entre clientes de setores distintos |
 | RNF-03 | Retenção de dados (LGPD) | Dados de perfil do cliente e histórico de editais devem ter prazo de retenção definido e mecanismo de exclusão; prazo exato `[a definir]` |
 | RNF-04 | Disponibilidade | `[a definir]` |
-| RNF-05 | Latência do alerta | Alerta deve ser disparado dentro do mesmo ciclo de varredura intradiária em que o edital foi capturado (não é requisito de tempo real) |
+| RNF-05 | Latência do alerta | Alerta deve ser disparado dentro do mesmo ciclo de varredura em que o edital foi capturado (não é requisito de tempo real) |
 | RNF-06 | Segurança de senha | Senhas de cliente e operador nunca armazenadas em texto plano — hash com bcrypt |
 
 ## 7. Integrações e fontes de dado
@@ -63,6 +63,7 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 | Cobertura incompleta por depender só do PNCP nesta fase | Cliente perde editais publicados apenas em portais legados | RF-05 planejado para fase 2 |
 | Falso positivo no score de aderência | Cliente perde confiança no agente e passa a ignorar alertas | Usar a taxa de aderência (seção 2) como ciclo de feedback para recalibrar o score |
 | Falha no isolamento multi-tenant | Exposição de estratégia de um cliente a outro; risco reputacional e de conluio | RNF-02 como requisito arquitetural desde o início, não como retrofit |
+| Varredura só 1x/dia (RNF-01 rebaixado pelo limite do plano Hobby) | Edital publicado logo após o horário do cron só é capturado quase 24h depois; cliente pode perder janela de tempo pra se preparar | Upgrade pra Vercel Pro (libera cron intradiário nativo) ou mover o disparo pra fora do Vercel Cron (ex: GitHub Actions agendado) — decisão de custo/infra em aberto, ver seção 11 |
 
 ## 10. Glossário
 - **PNCP**: Portal Nacional de Contratações Públicas — hub oficial de publicação de editais
@@ -78,4 +79,5 @@ Agente que monitora publicações de editais em licitações públicas brasileir
 - SLA de disponibilidade (RNF-04)
 - Cadastro de cliente/operador via UI do painel admin — por ora só leitura (lista de clientes); criação continua via `scripts/cadastrar_cliente.py` (RF-AUTH-03)
 - Fluxo de recuperação de senha (RF-AUTH-01/02)
+- Voltar à cadência intradiária (RNF-01): decisão entre upgrade pro Vercel Pro (paga, cron nativo) ou mover o disparo pra um agendador externo gratuito (ex: GitHub Actions) mantendo o Hobby — usuário optou por 1x/dia por ora em 2026-07-25
 - Expiração/duração da sessão de login (RF-AUTH-01/02)

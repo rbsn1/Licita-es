@@ -7,7 +7,7 @@
     }
   },
   "crons": [
-    { "path": "/cron/prospectar", "schedule": "0 */3 * * *" },
-    { "path": "/cron/analisar", "schedule": "10 */3 * * *" }
+    { "path": "/cron/prospectar", "schedule": "0 6 * * *" },
+    { "path": "/cron/analisar", "schedule": "15 6 * * *" }
   ]
 }

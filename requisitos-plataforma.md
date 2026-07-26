@@ -61,7 +61,7 @@ Não inclui monitoramento contínuo de validade de certidões (ex: CND, regulari
 | ID | Atributo | Critério |
 |---|---|---|
 | RNF-01 | Isolamento de dados multi-tenant | Válido para todos os agentes (não só Prospecção): dados e dossiês de um cliente nunca acessíveis a outro, mesmo entre clientes do mesmo setor disputando o mesmo certame |
-| RNF-02 | Latência de alerta — sessão pública e pós-contratação | Ciclo intradiário, mesmo padrão da Prospecção — não é requisito de tempo real (decisão explícita apesar da dinâmica ao vivo da fase de lances; ver risco na seção 9) |
+| RNF-02 | Latência de alerta — sessão pública e pós-contratação | Ciclo intradiário, mesmo padrão originalmente definido pra Prospecção — não é requisito de tempo real (decisão explícita apesar da dinâmica ao vivo da fase de lances; ver risco na seção 9). Nota 2026-07-25: a Prospecção está rodando 1x/dia por ora, por limite de cron do plano Vercel Hobby (ver `requisitos-prospeccao.md`, RNF-01) — se esse agente for implementado antes de isso ser resolvido, decidir explicitamente se ele também herda o rebaixamento ou se justifica o upgrade pra Pro |
 | RNF-03 | Volume inicial | Piloto pequeno: 1 a 10 clientes simultâneos |
 | RNF-04 | Retenção de dados (LGPD) | Válido para dossiê documental e histórico de preços do cliente, além do histórico de editais já previsto na Prospecção; prazo exato `[a definir]` |
 | RNF-05 | Disponibilidade | `[a definir]` |
