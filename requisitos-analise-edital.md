@@ -35,6 +35,8 @@ Agente que obtém automaticamente o PDF do edital publicado (via PNCP) para os e
 | RNF-01 | Idempotência | Um edital já analisado (resumo já persistido) nunca é reanalisado automaticamente — evita gasto duplicado de API |
 | RNF-02 | Resiliência por edital | Falha ao analisar um edital (PDF ilegível, erro de rede, erro do modelo) não pode interromper o processamento dos demais editais pendentes no mesmo ciclo |
 | RNF-03 | Isolamento de dados multi-tenant | O resumo em si é do edital (não do cliente) e pode ser reaproveitado entre clientes que deram match no mesmo edital — não há dado de um cliente exposto a outro por causa disso |
+| RNF-04 | Isolamento de falha entre agentes | Uma falha na Análise/triagem (incluindo indisponibilidade da Anthropic API) nunca pode impedir a Prospecção (RF-01 a RF-04) de continuar buscando editais e alertando clientes — os dois agentes rodam em rotas de cron separadas (`/cron/prospectar` e `/cron/analisar`) e a Prospecção não depende da Anthropic API |
+| RNF-05 | Degradação por falta de crédito | Ao detectar que a conta Anthropic está sem crédito (erro específico da API, não um erro genérico de edital), a Análise deve parar de processar o restante do lote no ciclo atual (em vez de repetir a mesma falha PDF a PDF) e notificar o operador uma vez por ciclo — nenhum edital pendente é perdido, todos são retentados automaticamente no próximo ciclo assim que houver crédito |
 
 ## 7. Integrações e fontes de dado
 - **PNCP** — download do PDF do edital via `PNCPClient.buscar_arquivos_compra`/`baixar_arquivo`
@@ -49,6 +51,7 @@ Agente que obtém automaticamente o PDF do edital publicado (via PNCP) para os e
 |---|---|---|
 | PDF escaneado (imagem, sem texto extraível por `pypdf`) | Resumo vazio ou incompleto | Não tratado nesta versão — falha do edital específico, não derruba o ciclo (RNF-02) |
 | Custo de Opus por edital analisado | Gasto proporcional ao volume de matches relevantes | RF-ANL-02 já limita aos editais acima do limiar de alerta; revisar limiar/modelo se o volume do piloto (RNF-03 da plataforma) tornar o custo relevante |
+| Conta Anthropic fica sem crédito | Sem RNF-04/RNF-05, o ciclo tentaria (e falharia) PDF a PDF silenciosamente, sem avisar ninguém, todo dia | RNF-04 (Prospecção continua rodando normalmente) + RNF-05 (para o lote no primeiro erro de crédito, alerta o operador por e-mail) |
 
 ## 10. Glossário
 - Ver glossário consolidado em `requisitos-plataforma.md`

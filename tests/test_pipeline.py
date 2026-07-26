@@ -1,6 +1,9 @@
 import datetime
 from types import SimpleNamespace
 
+import anthropic
+import httpx
+
 import agents.pipeline as pipeline_module
 from agents.pipeline import (
     _parse_prazo,
@@ -8,6 +11,17 @@ from agents.pipeline import (
     precificar_editais_pendentes,
     processar_editais_pendentes,
 )
+
+
+def _erro_credito_insuficiente() -> anthropic.APIStatusError:
+    response = httpx.Response(
+        400,
+        request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+        json={"error": {"message": "Your credit balance is too low to access the Anthropic API."}},
+    )
+    return anthropic.BadRequestError(
+        "Your credit balance is too low to access the Anthropic API.", response=response, body=None
+    )
 
 
 class _FakeQuery:
@@ -127,6 +141,49 @@ def test_analisar_editais_pendentes_falha_num_edital_nao_interrompe_os_demais(mo
     assert total == 1
     assert len(session.adicionados) == 1
     assert session.adicionados[0].edital_id == 2
+
+
+def test_analisar_editais_pendentes_para_no_primeiro_erro_de_credito_e_alerta_operador(monkeypatch):
+    editais = [_edital(id=1), _edital(id=2, pncp_id="83102277000152-1-000425/2026")]
+    session = _FakeSession(resultados=[editais])
+
+    def fake_analisar(pncp, anthropic_client, numero_controle):
+        raise _erro_credito_insuficiente()
+
+    alertas = []
+    monkeypatch.setattr(pipeline_module, "analisar_edital_por_numero_controle", fake_analisar)
+    monkeypatch.setattr(
+        pipeline_module,
+        "_alertar_credito_insuficiente",
+        lambda pendentes, processados: alertas.append((pendentes, processados)),
+    )
+
+    total = analisar_editais_pendentes(session, pncp=object(), anthropic_client=object())
+
+    assert total == 0
+    assert session.adicionados == []
+    assert alertas == [(2, 0)]
+
+
+def test_analisar_editais_pendentes_erro_generico_nao_dispara_alerta_de_credito(monkeypatch):
+    editais = [_edital(id=1)]
+    session = _FakeSession(resultados=[editais])
+
+    def fake_analisar(pncp, anthropic_client, numero_controle):
+        raise ValueError("PDF ilegível")
+
+    alertas = []
+    monkeypatch.setattr(pipeline_module, "analisar_edital_por_numero_controle", fake_analisar)
+    monkeypatch.setattr(
+        pipeline_module,
+        "_alertar_credito_insuficiente",
+        lambda pendentes, processados: alertas.append((pendentes, processados)),
+    )
+
+    total = analisar_editais_pendentes(session, pncp=object(), anthropic_client=object())
+
+    assert total == 0
+    assert alertas == []
 
 
 def _resumo(valor_estimado=None):

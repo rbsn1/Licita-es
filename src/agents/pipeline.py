@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from agents.analise_edital.agent import analisar_edital_por_numero_controle
 from agents.precificacao.agent import PrecificacaoAgent
 from data.models import Edital, FaixaPreco, Match, ResumoEdital
+from data.settings import settings
 from webapp.clients.pncp import PNCPClient
+from webapp.clients.resend_client import ResendClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +22,34 @@ def _parse_prazo(valor: str | None) -> datetime.datetime | None:
     except ValueError:
         logger.warning("prazo_limite_proposta em formato inesperado: %r", valor)
         return None
+
+
+# RNF (requisitos-analise-edital.md): a Anthropic recusa a chamada com 400 e essa
+# mensagem específica quando a conta está sem crédito — distinto de um erro comum
+# de um edital isolado (PDF ilegível, etc.), que RNF-02 já trata individualmente
+def _e_erro_de_credito(erro: BaseException) -> bool:
+    return isinstance(erro, anthropic.APIStatusError) and "credit balance" in str(erro).lower()
+
+
+def _alertar_credito_insuficiente(pendentes: int, processados: int) -> None:
+    if not settings.operador_email:
+        logger.warning("OPERADOR_EMAIL não configurado, alerta de crédito insuficiente não enviado")
+        return
+    try:
+        with ResendClient() as resend:
+            resend.enviar_email(
+                destinatario=settings.operador_email,
+                assunto="[análise de edital] conta Anthropic sem crédito",
+                corpo_html=(
+                    "<p>A Análise/triagem de edital parou por falta de crédito na conta Anthropic.</p>"
+                    f"<p>{processados} de {pendentes} editais pendentes foram processados antes do "
+                    "bloqueio; os demais serão retentados automaticamente no próximo ciclo assim que "
+                    "houver crédito — nenhum edital fica perdido.</p>"
+                    "<p>Adicione crédito em console.anthropic.com → Plans &amp; Billing.</p>"
+                ),
+            )
+    except Exception:
+        logger.exception("falha ao enviar o alerta de crédito insuficiente para o operador")
 
 
 # RF-ANL-01/RF-ANL-02: analisa editais com match relevante (score >= limiar de
@@ -47,7 +77,16 @@ def analisar_editais_pendentes(
     for edital in editais_pendentes:
         try:
             dados = analisar_edital_por_numero_controle(pncp, anthropic_client, edital.pncp_id)
-        except Exception:
+        except Exception as erro:
+            if _e_erro_de_credito(erro):
+                logger.error(
+                    "Anthropic sem crédito — interrompendo análise neste ciclo (%d de %d editais "
+                    "pendentes processados)",
+                    analisados,
+                    len(editais_pendentes),
+                )
+                _alertar_credito_insuficiente(len(editais_pendentes), analisados)
+                break
             logger.exception("falha ao analisar edital %s", edital.pncp_id)
             continue
 

@@ -35,6 +35,8 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 | RF-ANL-03 (exibição do resumo no dashboard) | `src/webapp/routes/dashboard.py` (outerjoin de `ResumoEdital`) + `src/webapp/templates/dashboard.html` (coluna "Prazo proposta") |
 | RNF-01 (idempotência — edital já resumido não é reanalisado) | filtro `ResumoEdital.id.is_(None)` em `analisar_editais_pendentes`, `src/agents/pipeline.py` |
 | RNF-02 (falha num edital não interrompe os demais) | `try/except` por edital em `analisar_editais_pendentes`/`precificar_editais_pendentes`, `src/agents/pipeline.py` |
+| RNF-04 (Prospecção nunca depende da Anthropic API) | garantido pela separação de rotas — `src/agents/prospeccao/agent.py` não importa `anthropic` |
+| RNF-05 (para o lote e alerta o operador ao detectar conta Anthropic sem crédito) | `_e_erro_de_credito`/`_alertar_credito_insuficiente` em `analisar_editais_pendentes`, `src/agents/pipeline.py` |
 | Modelo de dados | `ResumoEdital`/`FaixaPreco` em `src/data/models.py` (um registro por `Edital`, não por cliente — conteúdo do edital independe de quem deu match), migração `alembic/versions/c1a0f5d9b2e4_*.py` |
 
 ### Mapa requisito → implementação (autenticação)
