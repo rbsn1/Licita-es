@@ -23,7 +23,7 @@ Percentual de êxito (success fee) sobre o valor do contrato, cobrado no momento
 
 **Dentro do escopo:**
 1. **Prospecção de editais** — detalhado em [requisitos-prospeccao.md](requisitos-prospeccao.md) (RF-01 a RF-05)
-2. **Análise/triagem de edital**
+2. **Análise/triagem de edital** — detalhado em [requisitos-analise-edital.md](requisitos-analise-edital.md) (RF-ANL-01 a RF-ANL-03)
 3. **Precificação** — detalhado em [requisitos-precificacao.md](requisitos-precificacao.md) (RF-PRE-01 a RF-PRE-04)
 4. **Documentação/habilitação**
 5. **Acompanhamento** (sessão pública + pós-contratação)

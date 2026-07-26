@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from data.db import get_session
 from data.formatacao import formatar_valor_brl
-from data.models import Cliente, Edital, Esfera, Match
+from data.models import Cliente, Edital, Esfera, FaixaPreco, Match, ResumoEdital
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
@@ -38,9 +38,13 @@ def dashboard(
         request.session.pop("cliente_id", None)
         return RedirectResponse(url="/login", status_code=303)
 
+    # RF-ANL-03/RF-PRE-03: resumo e faixa de preço são opcionais (outerjoin) —
+    # nem todo edital com match já foi processado pelo pipeline de análise/precificação
     consulta = (
-        session.query(Match, Edital)
+        session.query(Match, Edital, ResumoEdital, FaixaPreco)
         .join(Edital, Match.edital_id == Edital.id)
+        .outerjoin(ResumoEdital, ResumoEdital.edital_id == Edital.id)
+        .outerjoin(FaixaPreco, FaixaPreco.edital_id == Edital.id)
         .filter(Match.cliente_id == cliente.id, Match.score >= score_minimo)
     )
     if uf:

@@ -41,3 +41,33 @@ def test_cron_prospectar_sem_header_retorna_401(monkeypatch):
         assert response.status_code == 401
     finally:
         app.dependency_overrides.clear()
+
+
+def test_cron_analisar_sem_cron_secret_configurado_retorna_401(monkeypatch):
+    monkeypatch.setattr(settings, "cron_secret", "")
+    client = _client_com_sessao_fake()
+    try:
+        response = client.get("/cron/analisar", headers={"Authorization": "Bearer qualquer-coisa"})
+        assert response.status_code == 401
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_cron_analisar_com_secret_errado_retorna_401(monkeypatch):
+    monkeypatch.setattr(settings, "cron_secret", "segredo-correto")
+    client = _client_com_sessao_fake()
+    try:
+        response = client.get("/cron/analisar", headers={"Authorization": "Bearer segredo-errado"})
+        assert response.status_code == 401
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_cron_analisar_sem_header_retorna_401(monkeypatch):
+    monkeypatch.setattr(settings, "cron_secret", "segredo-correto")
+    client = _client_com_sessao_fake()
+    try:
+        response = client.get("/cron/analisar")
+        assert response.status_code == 401
+    finally:
+        app.dependency_overrides.clear()

@@ -86,6 +86,44 @@ class Edital(Base):
     link_pncp: Mapped[str] = mapped_column(String)
 
 
+# RF-ANL-01/RF-ANL-02: resumo estruturado do edital, um por Edital (não por
+# cliente — o conteúdo do edital independe de quem deu match nele; reaproveitado
+# entre clientes que dão match no mesmo edital)
+class ResumoEdital(Base):
+    __tablename__ = "resumos_edital"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    edital_id: Mapped[int] = mapped_column(ForeignKey("editais.id"), unique=True)
+    prazo_limite_proposta: Mapped[datetime.datetime | None] = mapped_column(nullable=True)
+    valor_estimado: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    requisitos_habilitacao: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    clausulas_risco: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    criado_em: Mapped[datetime.datetime] = mapped_column(
+        default=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
+    edital: Mapped["Edital"] = relationship()
+
+
+# RF-PRE-01/RF-PRE-02: faixa de preço sugerida, um por Edital (mesma lógica do
+# ResumoEdital — o cálculo não depende do cliente que deu match)
+class FaixaPreco(Base):
+    __tablename__ = "faixas_preco"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    edital_id: Mapped[int] = mapped_column(ForeignKey("editais.id"), unique=True)
+    minimo: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    ideal: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    maximo: Mapped[float | None] = mapped_column(Numeric(14, 2), nullable=True)
+    confiavel: Mapped[bool] = mapped_column(default=False)
+    amostra: Mapped[int] = mapped_column(default=0)
+    criado_em: Mapped[datetime.datetime] = mapped_column(
+        default=lambda: datetime.datetime.now(datetime.timezone.utc)
+    )
+
+    edital: Mapped["Edital"] = relationship()
+
+
 class Match(Base):
     __tablename__ = "matches"
     __table_args__ = (UniqueConstraint("cliente_id", "edital_id"),)

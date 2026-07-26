@@ -6,7 +6,8 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 
 - `requisitos-plataforma.md` — requisitos consolidados da plataforma (5 agentes, modelo de negócio, RNFs transversais)
 - `requisitos-prospeccao.md` — requisitos detalhados do agente de Prospecção (já implementado)
-- `requisitos-precificacao.md` — requisitos detalhados do agente de Precificação (spec fechada, ainda sem código)
+- `requisitos-analise-edital.md` — requisitos detalhados do agente de Análise/triagem de edital (já implementado)
+- `requisitos-precificacao.md` — requisitos detalhados do agente de Precificação (já implementado)
 
 ### Regras
 
@@ -30,6 +31,11 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 | Requisito | Onde |
 |---|---|
 | RF-ANL-01 (obtém PDF do edital via PNCP e extrai resumo estruturado) | `src/agents/analise_edital/agent.py` — usa `claude-opus-4-8` via Anthropic API (`ANTHROPIC_API_KEY` obrigatória); `src/webapp/clients/pncp.py` (`buscar_arquivos_compra`, `baixar_arquivo`, `parse_numero_controle`, `selecionar_documento_edital`) para localizar e baixar o PDF |
+| RF-ANL-02 (disparo automático para matches acima do limiar de alerta) | `analisar_editais_pendentes` em `src/agents/pipeline.py`, chamada por `src/webapp/routes/cron.py` (`GET /cron/analisar`, agendado em `vercel.json` via Vercel Cron, 10min após `/cron/prospectar`) |
+| RF-ANL-03 (exibição do resumo no dashboard) | `src/webapp/routes/dashboard.py` (outerjoin de `ResumoEdital`) + `src/webapp/templates/dashboard.html` (coluna "Prazo proposta") |
+| RNF-01 (idempotência — edital já resumido não é reanalisado) | filtro `ResumoEdital.id.is_(None)` em `analisar_editais_pendentes`, `src/agents/pipeline.py` |
+| RNF-02 (falha num edital não interrompe os demais) | `try/except` por edital em `analisar_editais_pendentes`/`precificar_editais_pendentes`, `src/agents/pipeline.py` |
+| Modelo de dados | `ResumoEdital`/`FaixaPreco` em `src/data/models.py` (um registro por `Edital`, não por cliente — conteúdo do edital independe de quem deu match), migração `alembic/versions/c1a0f5d9b2e4_*.py` |
 
 ### Mapa requisito → implementação (autenticação)
 
@@ -48,8 +54,8 @@ Sessão via `SessionMiddleware` (cookie assinado por `SESSION_SECRET_KEY`, ver `
 |---|---|
 | RF-PRE-01 (faixa de preço a partir de orçamento + histórico PNCP + Painel de Preços) | `src/agents/precificacao/agent.py` (`PrecificacaoAgent.calcular_para_edital`, `calcular_faixa_preco`, `filtrar_contratos_por_objeto`); `src/webapp/clients/pncp.py` (`buscar_contratos`/`buscar_todos_contratos`, endpoint `/v1/contratos`); `src/webapp/clients/painel_precos.py` (`PainelPrecosClient`) |
 | RF-PRE-04 (sinaliza faixa não confiável com pouca amostra) | `calcular_faixa_preco` em `src/agents/precificacao/agent.py` |
-| RF-PRE-02 (disparo automático após Análise/triagem) | não implementado — agente existe só como biblioteca, sem rota/cron; depende de RF-ANL-01 estar persistido/wireado primeiro (ver `requisitos-precificacao.md`, item em aberto) |
-| RF-PRE-03 (exibição no dashboard) | não implementado, mesma dependência acima |
+| RF-PRE-02 (disparo automático após Análise/triagem, mesmo limiar do RF-03) | `precificar_editais_pendentes`/`processar_editais_pendentes` em `src/agents/pipeline.py`, chamada pela mesma rota `GET /cron/analisar` |
+| RF-PRE-03 (exibição no dashboard) | `src/webapp/routes/dashboard.py` (outerjoin de `FaixaPreco`) + `src/webapp/templates/dashboard.html` (coluna "Faixa de preço sugerida") |
 
 Sinal do Painel de Preços exige `codigoItemCatalogo` (CATMAT/CATSER), que a Análise/triagem ainda não extrai do edital — na prática só o histórico do PNCP alimenta a faixa hoje (ver `requisitos-precificacao.md`).
 

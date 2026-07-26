@@ -26,6 +26,8 @@ Mesmo padrão de persona única do restante da plataforma (ver `requisitos-plata
 - Alerta por e-mail/WhatsApp dedicado à faixa de preço — o resultado aparece só no dashboard nesta versão; não dispara um novo alerta separado do fluxo de RF-03
 - Execução sob demanda pelo cliente — nesta versão o cálculo só roda automaticamente após a Análise/triagem; não há botão de "recalcular" no dashboard
 
+**Gatilho automático (RF-PRE-02):** roda só para editais com match de score acima do limiar de alerta (mesmo limiar do RF-03, hoje 40) — mesmo critério do RF-ANL-02 da Análise/triagem, decisão explícita para não gastar Opus/consultas de histórico em editais pouco aderentes a nenhum cliente. Precificação sempre roda depois da Análise/triagem terminar para aquele edital (a faixa usa o `valor_estimado` extraído do PDF quando disponível, caindo para o valor estimado do PNCP se a extração não achou nada).
+
 ## 5. Requisitos funcionais
 | ID | Descrição | Prioridade |
 |---|---|---|
@@ -68,7 +70,6 @@ Mesmo padrão de persona única do restante da plataforma (ver `requisitos-plata
 - **RF / RNF**: requisito funcional / requisito não funcional
 
 ## 11. Itens em aberto
-- **Pipeline automático ainda não conectado**: RF-ANL-01 (Análise/triagem) hoje só existe como função de biblioteca — sem persistência em banco, sem rota, sem disparo automático por edital. RF-PRE-02 (disparo automático após a Análise/triagem) e RF-PRE-03 (exibição no dashboard) pressupõem esse encadeamento; por decisão explícita nesta rodada, a Precificação foi implementada como agente de biblioteca (`src/agents/precificacao/agent.py`, mesmo padrão do RF-ANL-01 hoje), testável isoladamente, mas ainda não conectada a rota/cron/dashboard. Conectar os dois agentes ao pipeline real (persistência + disparo automático) fica para uma rodada futura.
 - **Sinal do Painel de Preços inativo na prática**: exige `codigoItemCatalogo` (CATMAT/CATSER), que a Análise/triagem não extrai do edital hoje. Até essa extração existir (mudança em RF-ANL-01) ou surgir outra fonte para o código, a faixa de preço se apoia só no histórico de contratos do PNCP.
 - Algoritmo de cálculo da faixa implementado: mínimo/máximo da amostra de contratos semelhantes do mesmo órgão, ideal = mediana, teto sempre limitado ao orçamento estimado do edital quando conhecido (`calcular_faixa_preco`). Sujeito a revisão após validação com dados reais.
 - Quantidade mínima de registros para considerar a faixa "confiável" (RF-PRE-04): implementado como 3 (`amostra_minima`), valor de partida sem validação empírica ainda

@@ -2,10 +2,12 @@
   "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
   "functions": {
     "api/index.py": {
-      "includeFiles": "src/**"
+      "includeFiles": "src/**",
+      "maxDuration": 60
     }
   },
   "crons": [
-    { "path": "/cron/prospectar", "schedule": "0 */3 * * *" }
+    { "path": "/cron/prospectar", "schedule": "0 */3 * * *" },
+    { "path": "/cron/analisar", "schedule": "10 */3 * * *" }
   ]
 }
