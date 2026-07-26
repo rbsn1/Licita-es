@@ -94,6 +94,16 @@ def test_admin_sem_sessao_redireciona_para_login():
         app.dependency_overrides.clear()
 
 
+def test_raiz_redireciona_para_login():
+    client = _client_com_sessao()
+    try:
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 307
+        assert response.headers["location"] == "/login"
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_admin_login_submit_credenciais_corretas():
     operador_fake = SimpleNamespace(id=7, senha_hash=hash_senha("outrasenha123"))
     client = _client_com_sessao(resultado=operador_fake)

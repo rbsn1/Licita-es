@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from data.settings import settings
@@ -18,3 +19,8 @@ app.include_router(admin_router)
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/")
+def raiz() -> RedirectResponse:
+    return RedirectResponse(url="/login")
