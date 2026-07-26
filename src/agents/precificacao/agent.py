@@ -109,12 +109,15 @@ class PrecificacaoAgent:
         self,
         edital: dict,
         codigo_item_catalogo: int | None = None,
-        janela_dias: int = 730,
+        janela_dias: int = 365,
         max_paginas_contratos: int | None = None,
     ) -> dict:
+        # janela_dias não pode passar de 365: o endpoint /v1/contratos do PNCP
+        # recusa com 422 ("Período maior que 365 dias") qualquer intervalo maior —
+        # não documentado no OpenAPI, descoberto rodando contra a API real
         cnpj_orgao, _ano, _sequencial = parse_numero_controle(edital["pncp_id"])
         hoje = datetime.date.today()
-        data_inicial = hoje - datetime.timedelta(days=janela_dias)
+        data_inicial = hoje - datetime.timedelta(days=min(janela_dias, 365))
 
         contratos = list(
             self._pncp.buscar_todos_contratos(

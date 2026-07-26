@@ -46,7 +46,7 @@ Mesmo padrão de persona única do restante da plataforma (ver `requisitos-plata
 | RNF-05 | Disponibilidade | `[a definir]` — mesmo item em aberto da plataforma |
 
 ## 7. Integrações e fontes de dado
-- **PNCP** — `GET /v1/contratos` (mesmo `PNCPClient` de Prospecção/Análise, método `buscar_contratos`/`buscar_todos_contratos`), filtrado por `cnpjOrgao` (o órgão do próprio edital) e janela de datas. A API não aceita busca textual por objeto — a semelhança com o objeto do edital em análise é calculada no cliente, por sobreposição de palavras significativas (`filtrar_contratos_por_objeto`), não pela API.
+- **PNCP** — `GET /v1/contratos` (mesmo `PNCPClient` de Prospecção/Análise, método `buscar_contratos`/`buscar_todos_contratos`), filtrado por `cnpjOrgao` (o órgão do próprio edital) e janela de datas. A API não aceita busca textual por objeto — a semelhança com o objeto do edital em análise é calculada no cliente, por sobreposição de palavras significativas (`filtrar_contratos_por_objeto`), não pela API. **Janela máxima de 365 dias** — o endpoint recusa com 422 ("Período maior que 365 dias") qualquer intervalo maior; não documentado no OpenAPI, descoberto rodando contra a API real (`janela_dias` default ajustado de 730 para 365 em `PrecificacaoAgent.calcular_para_edital`).
 - **Painel de Preços / Compras.gov.br (SIASG)** — API pública de dados abertos, REST, documentada via Swagger em `dadosabertos.compras.gov.br` (ver [Swagger UI](https://dadosabertos.compras.gov.br/swagger-ui/index.html)). Endpoints `1_consultarMaterial`/`3_consultarServico` exigem `codigoItemCatalogo` (código CATMAT/CATSER) como parâmetro obrigatório — não há busca por texto livre. Como a Análise/triagem (RF-ANL-01) não extrai esse código hoje, esta fonte fica inativa na prática até isso existir (ver item em aberto).
 - **Análise/triagem de edital (RF-ANL-01)** — fonte do orçamento estimado do órgão; Precificação é acionada em sequência a esse agente, não roda de forma independente
 
@@ -60,6 +60,7 @@ Mesmo padrão de persona única do restante da plataforma (ver `requisitos-plata
 |---|---|---|
 | Erro de extração do orçamento estimado pela Análise/triagem se propaga para a faixa de preço | Cliente recebe faixa de preço calculada sobre uma base incorreta | RNF-03; validar qualidade de extração da Análise/triagem antes de liberar Precificação em produção (risco já registrado em `requisitos-plataforma.md`) |
 | Objeto do edital muito específico/pouco recorrente, sem histórico suficiente no PNCP nem no Painel de Preços | Faixa de preço pouco confiável, cliente pode se basear nela e errar a proposta | RF-PRE-04 — sinalizar explicitamente "faixa não confiável" em vez de apresentar um número sem lastro |
+| Órgãos pequenos (ex: municípios pequenos do Amazonas) raramente têm 3+ contratos parecidos no mesmo órgão em 365 dias | Testado ao vivo em 2026-07-26 contra 2 editais reais de municípios do AM — os dois caíram em "não confiável" por falta de histórico do próprio órgão | Considerado mas não implementado: ampliar a busca pra outros órgãos do mesmo estado/porte quando o órgão específico não tiver histórico suficiente — decisão de algoritmo em aberto, ver seção 11 |
 | Indisponibilidade ou mudança da API do Painel de Preços (fora do controle da plataforma) | Cálculo da faixa fica só com dados do PNCP, reduzindo a base de comparação | Tratar a chamada ao Painel de Preços como best-effort — se falhar, seguir com PNCP isoladamente e sinalizar fonte parcial (mesmo espírito do RF-PRE-04) |
 
 ## 10. Glossário
@@ -75,3 +76,4 @@ Mesmo padrão de persona única do restante da plataforma (ver `requisitos-plata
 - Quantidade mínima de registros para considerar a faixa "confiável" (RF-PRE-04): implementado como 3 (`amostra_minima`), valor de partida sem validação empírica ainda
 - Histórico interno de propostas do cliente como fonte adicional — fase 2, formato de captura ainda não definido (upload livre vs. campos estruturados, mesmo tipo de decisão em aberto no dossiê documental de `requisitos-plataforma.md`)
 - Se/quando adicionar um botão de recálculo sob demanda no dashboard, além do disparo automático pós Análise/triagem
+- Se/quando ampliar a busca de histórico pra outros órgãos do mesmo estado/porte quando o órgão do edital não tiver contratos comparáveis — usuário sinalizou interesse em 2026-07-26 mas não decidiu ainda
