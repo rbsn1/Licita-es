@@ -15,6 +15,28 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 templates.env.filters["valor_brl"] = formatar_valor_brl
 
 
+# recebidos como string e validados manualmente (em vez de tipar o parâmetro do
+# FastAPI direto como Esfera/date) porque o form do dashboard submete "" pros
+# campos deixados em branco — o parsing automático do FastAPI rejeita "" como
+# data/enum inválidos e devolve 422 em vez de tratar como "sem filtro"
+def _esfera_valida(valor: str | None) -> Esfera | None:
+    if not valor:
+        return None
+    try:
+        return Esfera(valor)
+    except ValueError:
+        return None
+
+
+def _data_valida(valor: str | None) -> datetime.date | None:
+    if not valor:
+        return None
+    try:
+        return datetime.date.fromisoformat(valor)
+    except ValueError:
+        return None
+
+
 # RF-04/RF-AUTH-01: dashboard consultável, agora protegido por sessão de login
 # (substitui o link mágico por token), filtrável por score, órgão, esfera,
 # modalidade e data
@@ -23,10 +45,10 @@ def dashboard(
     request: Request,
     score_minimo: float = Query(0.0),
     uf: str | None = Query(None),
-    esfera: Esfera | None = Query(None),
+    esfera: str | None = Query(None),
     modalidade: str | None = Query(None),
-    data_inicial: datetime.date | None = Query(None),
-    data_final: datetime.date | None = Query(None),
+    data_inicial: str | None = Query(None),
+    data_final: str | None = Query(None),
     session: Session = Depends(get_session),
 ):
     cliente_id = request.session.get("cliente_id")
@@ -37,6 +59,10 @@ def dashboard(
     if cliente is None:
         request.session.pop("cliente_id", None)
         return RedirectResponse(url="/login", status_code=303)
+
+    esfera_filtro = _esfera_valida(esfera)
+    data_inicial_filtro = _data_valida(data_inicial)
+    data_final_filtro = _data_valida(data_final)
 
     # RF-ANL-03/RF-PRE-03: resumo e faixa de preço são opcionais (outerjoin) —
     # nem todo edital com match já foi processado pelo pipeline de análise/precificação
@@ -49,14 +75,14 @@ def dashboard(
     )
     if uf:
         consulta = consulta.filter(Edital.uf == uf.upper())
-    if esfera:
-        consulta = consulta.filter(Edital.esfera == esfera)
+    if esfera_filtro:
+        consulta = consulta.filter(Edital.esfera == esfera_filtro)
     if modalidade:
         consulta = consulta.filter(Edital.modalidade == modalidade)
-    if data_inicial:
-        consulta = consulta.filter(Edital.data_publicacao >= data_inicial)
-    if data_final:
-        consulta = consulta.filter(Edital.data_publicacao <= data_final)
+    if data_inicial_filtro:
+        consulta = consulta.filter(Edital.data_publicacao >= data_inicial_filtro)
+    if data_final_filtro:
+        consulta = consulta.filter(Edital.data_publicacao <= data_final_filtro)
 
     resultados = consulta.order_by(Match.score.desc()).all()
 
@@ -71,10 +97,10 @@ def dashboard(
             "filtros": {
                 "score_minimo": score_minimo,
                 "uf": uf or "",
-                "esfera": esfera.value if esfera else "",
+                "esfera": esfera_filtro.value if esfera_filtro else "",
                 "modalidade": modalidade or "",
-                "data_inicial": data_inicial.isoformat() if data_inicial else "",
-                "data_final": data_final.isoformat() if data_final else "",
+                "data_inicial": data_inicial_filtro.isoformat() if data_inicial_filtro else "",
+                "data_final": data_final_filtro.isoformat() if data_final_filtro else "",
             },
             "esferas": list(Esfera),
         },
