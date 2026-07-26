@@ -166,6 +166,74 @@ class PNCPClient:
                 break
             pagina += 1
 
+    # RF-PRE-01: histórico de contratos homologados de um órgão, usado como fonte
+    # de preços de referência para a faixa sugerida pela Precificação
+    def buscar_contratos(
+        self,
+        cnpj_orgao: str,
+        data_inicial: datetime.date,
+        data_final: datetime.date,
+        pagina: int = 1,
+        tamanho_pagina: int = 50,
+        max_tentativas: int = 5,
+    ) -> dict:
+        espera = 1.0
+        for tentativa in range(max_tentativas + 1):
+            self._throttle()
+            try:
+                response = self._client.get(
+                    "/v1/contratos",
+                    params={
+                        "dataInicial": data_inicial.strftime("%Y%m%d"),
+                        "dataFinal": data_final.strftime("%Y%m%d"),
+                        "cnpjOrgao": cnpj_orgao,
+                        "pagina": pagina,
+                        "tamanhoPagina": tamanho_pagina,
+                    },
+                )
+            except httpx.TransportError:
+                self._last_request_at = time.monotonic()
+                if tentativa == max_tentativas:
+                    raise
+                time.sleep(espera)
+                espera *= 2
+                continue
+
+            self._last_request_at = time.monotonic()
+            if response.status_code == 429 or response.status_code >= 500:
+                if tentativa == max_tentativas:
+                    if response.status_code == 429:
+                        raise PNCPRateLimitError("limite de requisições do PNCP excedido")
+                    response.raise_for_status()
+                time.sleep(espera)
+                espera *= 2
+                continue
+            response.raise_for_status()
+            if response.status_code == 204 or not response.content:
+                return {"data": [], "totalPaginas": 0}
+            return response.json()
+        raise PNCPRateLimitError("limite de requisições do PNCP excedido")
+
+    def buscar_todos_contratos(
+        self,
+        cnpj_orgao: str,
+        data_inicial: datetime.date,
+        data_final: datetime.date,
+        tamanho_pagina: int = 50,
+        max_paginas: int | None = None,
+    ) -> Iterator[dict]:
+        pagina = 1
+        while True:
+            resultado = self.buscar_contratos(
+                cnpj_orgao, data_inicial, data_final, pagina, tamanho_pagina
+            )
+            yield from resultado["data"]
+            if pagina >= resultado["totalPaginas"]:
+                break
+            if max_paginas is not None and pagina >= max_paginas:
+                break
+            pagina += 1
+
     # RF-ANL-01: lista os documentos (edital, ETP, anexos) de uma contratação.
     # Vive num host/path diferente da API de consulta (api/pncp, não api/consulta).
     def buscar_arquivos_compra(self, cnpj: str, ano: int, sequencial: int) -> list[dict]:

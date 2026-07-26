@@ -5,7 +5,8 @@
 Este projeto segue requisitos-primeiro (spec-driven). As especificações são a fonte da verdade, não o código:
 
 - `requisitos-plataforma.md` — requisitos consolidados da plataforma (5 agentes, modelo de negócio, RNFs transversais)
-- `requisitos-prospeccao.md` — requisitos detalhados do agente de Prospecção (único já implementado)
+- `requisitos-prospeccao.md` — requisitos detalhados do agente de Prospecção (já implementado)
+- `requisitos-precificacao.md` — requisitos detalhados do agente de Precificação (spec fechada, ainda sem código)
 
 ### Regras
 
@@ -41,4 +42,15 @@ Este projeto segue requisitos-primeiro (spec-driven). As especificações são a
 
 Sessão via `SessionMiddleware` (cookie assinado por `SESSION_SECRET_KEY`, ver `.env.example`). Cadastro de cliente/operador continua via `scripts/cadastrar_cliente.py` / `scripts/cadastrar_operador.py` — não há formulário de cadastro na UI ainda.
 
-Os demais 3 agentes da plataforma (Precificação, Documentação/habilitação, Acompanhamento) têm requisitos fechados em `requisitos-plataforma.md` mas ainda nenhum código — ao implementá-los, seguir a mesma prática de rastreabilidade acima.
+### Mapa requisito → implementação (agente de Precificação)
+
+| Requisito | Onde |
+|---|---|
+| RF-PRE-01 (faixa de preço a partir de orçamento + histórico PNCP + Painel de Preços) | `src/agents/precificacao/agent.py` (`PrecificacaoAgent.calcular_para_edital`, `calcular_faixa_preco`, `filtrar_contratos_por_objeto`); `src/webapp/clients/pncp.py` (`buscar_contratos`/`buscar_todos_contratos`, endpoint `/v1/contratos`); `src/webapp/clients/painel_precos.py` (`PainelPrecosClient`) |
+| RF-PRE-04 (sinaliza faixa não confiável com pouca amostra) | `calcular_faixa_preco` em `src/agents/precificacao/agent.py` |
+| RF-PRE-02 (disparo automático após Análise/triagem) | não implementado — agente existe só como biblioteca, sem rota/cron; depende de RF-ANL-01 estar persistido/wireado primeiro (ver `requisitos-precificacao.md`, item em aberto) |
+| RF-PRE-03 (exibição no dashboard) | não implementado, mesma dependência acima |
+
+Sinal do Painel de Preços exige `codigoItemCatalogo` (CATMAT/CATSER), que a Análise/triagem ainda não extrai do edital — na prática só o histórico do PNCP alimenta a faixa hoje (ver `requisitos-precificacao.md`).
+
+Os demais 2 agentes da plataforma (Documentação/habilitação, Acompanhamento) têm requisitos fechados em `requisitos-plataforma.md` mas ainda nenhum código — ao implementá-los, seguir a mesma prática de rastreabilidade acima.
